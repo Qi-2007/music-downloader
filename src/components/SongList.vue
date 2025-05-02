@@ -2,7 +2,7 @@
   <div v-if="songs.length > 0" id="results-container">
     <h2>搜索结果</h2>
     <ul>
-      <li v-for="song in songs" :key="song.id">
+      <li v-for="(song, index) in songs" :key="song.id" @dblclick="$emit('play-song-from-list', index)">
         <div class="song-info">
           <img :src="song.cover_url" alt="封面" width="50" style="margin-right: 10px;">
           <span>{{ song.name }} - {{ song.artist }}</span>
@@ -28,7 +28,7 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(['download']);
+const emit = defineEmits(['download', 'play-song-from-list']);
 </script>
 
 <style scoped>
@@ -58,7 +58,7 @@ li:last-child {
 .song-info {
   display: flex;
   align-items: center;
-  width: 70%; /* 保持 song-info 内部的宽度比例 */
+  flex-grow: 1; /* 让 span 占据剩余空间 */
 }
 
 .song-info span {
@@ -74,6 +74,7 @@ li:last-child {
   border: none;
   border-radius: 5px;
   cursor: pointer;
+  white-space: nowrap; /* 防止按钮文本换行 */
 }
 
 .controls button:hover {

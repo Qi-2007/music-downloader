@@ -14,10 +14,19 @@
         <option value="netease">网易云音乐</option>
       </select>
     </div>
-    <div> <label for="bitrate">选择音质:</label> <select id="bitrate" v-model="selectedBitrate" @change="() => console.log('Selected Bitrate:', selectedBitrate)"> <option value="128kmp3">128kbps MP3</option> <option value="320kmp3">320kbps MP3</option> <option value="2000kflac">2000kbps FLAC</option> </select> </div>
+    <div>
+      <label for="bitrate">选择音质:</label>
+      <select id="bitrate" v-model="selectedBitrate" @change="() => console.log('Selected Bitrate:', selectedBitrate)">
+        <option value="128kmp3">128kbps MP3</option>
+        <option value="320kmp3">320kbps MP3</option>
+        <option value="2000kflac">2000kbps FLAC</option>
+      </select>
+    </div>
     <Search :source="selectedSource" @search-results="handleSearchResults" style="width: 80%; max-width: 960px; margin: 20px auto 0;" />
-    <SongList :songs="searchResults" @download="downloadSong" style="width: 80%; max-width: 960px; margin: 20px auto 0;" />
-    <Player :audioList="aplayerAudioList" v-if="aplayerAudioList.length > 0" style="width: 80%; max-width: 960px; margin: 20px auto 0;" />
+    <div class="player-list-container" style="width: 80%; max-width: 960px; margin: 20px auto 0;">
+      <SongList :songs="searchResults" @download="downloadSong" @play-song-from-list="playSongFromList" class="song-list-item" />
+      <Player :audioList="aplayerAudioList" v-if="aplayerAudioList.length > 0" ref="playerRef" class="player-item" />
+    </div>
     <Footer style="margin-top: 40px;" />
   </div>
 </template>
@@ -36,8 +45,9 @@ const password = ref('');
 const errorMessage = ref('');
 const searchResults = ref([]);
 const aplayerAudioList = ref([]);
-const selectedSource = ref('kuwo'); // 默认选择网易云音乐
-const selectedBitrate = ref('128kmp3'); // 默认选择 128kbps
+const selectedSource = ref('kuwo');
+const selectedBitrate = ref('128kmp3');
+const playerRef = ref(null); // 用于引用 Player 组件实例
 
 const getCookie = (name) => {
   return document.cookie.split('; ').reduce((r, v) => {
@@ -63,7 +73,7 @@ const authenticate = async (loginPassword = null) => {
     const data = await response.json();
     if (data.token) {
       isAuthenticated.value = true;
-      password.value = ''; // 登录成功后清空密码输入框
+      password.value = '';
       errorMessage.value = '';
     } else {
       errorMessage.value = data.error || '认证失败';
@@ -81,16 +91,17 @@ const handlePasswordLogin = () => {
 const handleSearchResults = async (results) => {
   searchResults.value = results.map(song => ({ ...song, source: selectedSource.value }));
   console.log('Search Results in Auth:', searchResults.value);
-  aplayerAudioList.value = await Promise.all(results.map(async (song) => {
+  aplayerAudioList.value = await Promise.all(results.map(async (song, index) => { // 传递 index
     try {
       const lyricResponse = await fetch(`${API_BASE_URL}/lyric/${song.id}?source=${selectedSource.value}`, { credentials: 'include' });
       const lyricData = await lyricResponse.json();
       return {
         name: song.name,
         artist: song.artist,
-        url: `${API_BASE_URL}/download/${song.id}?source=${selectedSource.value}&br=${selectedBitrate.value}`, // 使用 download 接口
+        url: `${API_BASE_URL}/download/${song.id}?source=${selectedSource.value}&br=${selectedBitrate.value}`,
         cover: song.cover_url,
         lrc: lyricData.lrc || '',
+        index: index, // 保存索引
       };
     } catch (error) {
       console.error('Error fetching audio or lyric for song:', song.name, error);
@@ -99,15 +110,25 @@ const handleSearchResults = async (results) => {
   })).then(list => list.filter(item => item !== null));
   console.log('aplayerAudioList in Auth:', aplayerAudioList.value);
 };
+
 const downloadSong = (song) => {
-  window.location.href = `${API_BASE_URL}/download/${song.id}?source=${song.source}&br=${selectedBitrate.value}`; 
+  window.location.href = `${API_BASE_URL}/download/${song.id}?source=${song.source}&br=${selectedBitrate.value}`;
+};
+
+const playSongFromList = (index) => {
+  console.log('父组件接收到播放请求，索引:', index);
+  if (playerRef.value && playerRef.value.aplayerInstance) {
+    playerRef.value.aplayerInstance.list.switch(index);
+    playerRef.value.aplayerInstance.play();
+  } else {
+    console.warn('Player 组件实例或 aplayerInstance 不存在。');
+  }
 };
 
 onMounted(() => {
   const token = getCookie('token');
   if (token) {
-    console.log('Found token in cookie, attempting auto login.');
-    authenticate(); // 不传递密码，依赖 Cookie 中的 token
+    authenticate();
   }
 });
 </script>
@@ -153,5 +174,57 @@ button {
 
 button:hover {
   background-color: #0056b3;
+}
+
+.player-list-container {
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+  align-items: flex-start;
+  width: 100%;
+  max-width: 960px;
+  margin-top: 20px;
+  /* 确保内容从左侧开始排列，并且不溢出 */
+  justify-content: flex-start;
+  overflow-x: auto; /* 如果内容超出容器宽度，允许水平滚动 */
+}
+
+.song-list-item {
+  flex: 1;
+  min-width: 0; /* 允许内容缩小 */
+  box-sizing: border-box; /* 包含 padding 和 border 在元素尺寸内 */
+}
+
+.player-item {
+  flex: 1;
+  min-width: 0; /* 允许内容缩小 */
+  box-sizing: border-box; /* 包含 padding 和 border 在元素尺寸内 */
+}
+
+/* 针对子元素内部的内容，确保不溢出 */
+.song-info {
+  overflow: hidden; /* 隐藏溢出的内容 */
+  text-overflow: ellipsis; /* 使用省略号表示溢出 */
+  white-space: nowrap; /* 防止文本换行 */
+}
+
+/* 在小屏幕上垂直排列 */
+@media (max-width: 768px) {
+  .player-list-container {
+    flex-direction: column;
+    align-items: stretch;
+    overflow-x: auto; /* 竖屏也允许水平滚动，以防万一 */
+  }
+
+  .song-list-item,
+  .player-item {
+    width: 100%;
+    min-width: auto;
+    margin-bottom: 20px;
+  }
+
+  .player-item:last-child {
+    margin-bottom: 0;
+  }
 }
 </style>
