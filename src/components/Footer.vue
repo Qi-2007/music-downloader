@@ -50,6 +50,7 @@ const currentYear = ref(new Date().getFullYear());
   display: flex;
   justify-content: center;
   gap: 20px;
+  flex-wrap: wrap; /* 添加这一行，允许子元素在空间不足时换行 */
 }
 
 .links ul li a {

@@ -26,7 +26,7 @@ body {
   margin: 0;
   display: flex;
   place-items: center;
-  min-width: 320px;
+  min-width: 300px;
   min-height: 100vh;
 }
 
@@ -61,7 +61,6 @@ button:focus-visible {
 #app {
   width: 100%; /* 设置为 100% */
   margin: 0 auto;
-  padding: 2rem;
   text-align: center;
   display: flex;
   flex-direction: column;
@@ -78,5 +77,84 @@ button:focus-visible {
   }
   button {
     background-color: #f9f9f9;
+  }
+}
+/* aplayer暗色模式下反色 @TransparentLC https://github.com/DIYgod/APlayer/issues/764 */
+@media (prefers-color-scheme: dark) {
+  .aplayer {
+    background: #333;
+  }
+  .aplayer .aplayer-info .aplayer-music .aplayer-title {
+    color: #fff;
+  }
+  .aplayer .aplayer-info .aplayer-music .aplayer-author {
+    color: #aaa;
+  }
+  .aplayer .aplayer-info .aplayer-controller .aplayer-bar-wrap .aplayer-bar {
+    background: #666;
+  }
+  .aplayer .aplayer-info .aplayer-controller .aplayer-time {
+    color: #999;
+  }
+  .aplayer .aplayer-info .aplayer-controller .aplayer-time .aplayer-icon path {
+    fill: #aaa;
+  }
+  .aplayer .aplayer-info .aplayer-controller .aplayer-time .aplayer-icon:hover path {
+    fill: #fff;
+  }
+  .aplayer .aplayer-info .aplayer-controller .aplayer-volume-wrap .aplayer-volume-bar-wrap .aplayer-volume-bar {
+    background: #666;
+  }
+  .aplayer .aplayer-lrc:before {
+    background: linear-gradient(to bottom, rgb(51, 51, 51) 0%, rgba(51, 51, 51, 0) 100%);
+  }
+  .aplayer .aplayer-lrc:after {
+    background: linear-gradient(to bottom, rgba(51, 51, 51, 0) 0%, rgba(51, 51, 51, 0.8) 100%);
+  }
+  .aplayer .aplayer-lrc p {
+    color: #aaa;
+  }
+  .aplayer .aplayer-list ol::-webkit-scrollbar-thumb {
+    background-color: #222;
+  }
+  .aplayer .aplayer-list ol::-webkit-scrollbar-thumb:hover {
+    background-color: #444;
+  }
+  .aplayer .aplayer-list ol li {
+    border-top: 1px solid #171717;
+  }
+  .aplayer .aplayer-list ol li:hover {
+    background: #111;
+  }
+  .aplayer .aplayer-list ol li.aplayer-list-light {
+    background: #171717;
+  }
+  .aplayer .aplayer-list ol li .aplayer-list-index {
+    color: #aaa;
+  }
+  .aplayer .aplayer-list ol li .aplayer-list-author {
+    color: #aaa;
+  }
+  .aplayer .aplayer-notice {
+    background-color: #ccc;
+    color: #666;
+  }
+  .aplayer .aplayer-miniswitcher {
+    background: #1a1a1a;
+  }
+  .aplayer .aplayer-miniswitcher .aplayer-icon path {
+    fill: #aaa;
+  }
+  .aplayer .aplayer-miniswitcher .aplayer-icon:hover path {
+    fill: #fff;
+  }
+  .aplayer.aplayer-fixed .aplayer-list {
+    border: 1px solid #222;
+  }
+  .aplayer.aplayer-fixed .aplayer-body {
+    background: #333;
+  }
+  .aplayer.aplayer-fixed .aplayer-info {
+    border-top: 1px solid #171717;
   }
 }

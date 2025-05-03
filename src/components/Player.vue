@@ -74,7 +74,7 @@ defineExpose({
 #player-container {
   padding: 20px;
   margin-top: 20px;
-  border-top: 1px solid #eee;
+  border-top: 1px solid #aaa; /* 将 #eee 替换为 #aaa */
 }
 
 #aplayer {
