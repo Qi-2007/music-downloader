@@ -6,7 +6,7 @@
     <p v-if="errorMessage" style="color: red;">{{ errorMessage }}</p>
   </div>
   <div v-else style="display: flex; flex-direction: column; align-items: center;">
-    <div>
+    <div style="margin-top: 50px;">
       <label for="source">选择音乐来源:</label>
       <select id="source" v-model="selectedSource" @change="() => console.log('Selected Source:', selectedSource.value)">
         <option value="kuwo">酷我</option>
@@ -27,7 +27,7 @@
       <SongList :songs="searchResults" @download="downloadSong" @play-song-from-list="playSongFromList" class="song-list-item" />
       <Player :audioList="aplayerAudioList" v-if="aplayerAudioList.length > 0" ref="playerRef" class="player-item" />
     </div>
-    <Footer style="margin-top: 40px;" />
+    <Footer/>
   </div>
 </template>
 
@@ -126,9 +126,18 @@ const playSongFromList = (index) => {
 };
 
 onMounted(() => {
-  const token = getCookie('token');
-  if (token) {
-    authenticate();
+  // 检查 URL 查询参数中是否有 pwd (优先级最高)
+  const urlParams = new URLSearchParams(window.location.search);
+  const passwordFromUrl = urlParams.get('pwd');
+
+  if (passwordFromUrl) {
+    authenticate(passwordFromUrl);
+  } else {
+    // 如果没有 pwd 参数，则检查 cookie 中的 token
+    const token = getCookie('token');
+    if (token) {
+      authenticate();
+    }
   }
 });
 </script>
