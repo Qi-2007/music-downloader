@@ -40,7 +40,7 @@
 * **编程语言:** [JavaScript (ES6+)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
 * **状态管理 (简单):** Vue Composition API (Ref, Reactive)
 * **HTTP 请求:** `fetch` API
-* **音乐播放器:** APlayer
+* **音乐播放器:** [APlayer](https://aplayer.js.org/)
 
 ## 🚀 快速开始
 

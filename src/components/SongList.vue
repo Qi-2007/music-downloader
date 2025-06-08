@@ -2,13 +2,17 @@
   <div v-if="songs.length > 0" id="results-container">
     <h2>搜索结果</h2>
     <ul>
-      <li v-for="(song, index) in songs" :key="song.id" @dblclick="$emit('play-song-from-list', index)">
+      <li v-for="(song, index) in songs" :key="song.id"
+          @dblclick="handleDoubleClick(index)"
+          @click="handleClick(index)"
+          :class="{ 'touch-active': isTouchDevice }"
+      >
         <div class="song-info">
           <img :src="song.cover_url" alt="封面" width="50">
           <span>{{ song.name }} - {{ song.artist }}</span>
         </div>
         <div class="controls">
-          <button @click="$emit('download', song)">下载</button>
+          <button @click.stop="$emit('download', song)">下载</button>
         </div>
       </li>
     </ul>
@@ -19,7 +23,7 @@
 </template>
 
 <script setup>
-import { defineEmits, defineProps } from 'vue';
+import { defineEmits, defineProps, onMounted, ref } from 'vue';
 
 const props = defineProps({
   songs: {
@@ -29,7 +33,63 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['download', 'play-song-from-list']);
+
+const isTouchDevice = ref(false);
+
+// 用于模拟双击的计时器和上一次点击时间
+let lastClickTime = 0;
+const DBLCLICK_THRESHOLD = 300; // 双击间隔阈值，单位毫秒
+
+onMounted(() => {
+  // 检测是否是触摸设备
+  isTouchDevice.value = ('ontouchstart' in window) ||
+                        (navigator.maxTouchPoints > 0) ||
+                        (navigator.msMaxTouchPoints > 0);
+});
+
+// 处理单击事件
+const handleClick = (index) => {
+  if (isTouchDevice.value) {
+    const currentTime = new Date().getTime();
+    if (currentTime - lastClickTime < DBLCLICK_THRESHOLD) {
+      // 认为是双击
+      console.log('Touch double click detected for index:', index);
+      emit('play-song-from-list', index);
+      lastClickTime = 0; // 重置，避免三次点击
+    } else {
+      // 认为是单击，可以不触发任何动作，或者触发一个“选择”之类的轻量级动作
+      console.log('Touch single click detected for index:', index);
+      // 如果你想让单击也有一个提示，可以在这里添加，但通常双击和单击是互斥的
+    }
+    lastClickTime = currentTime;
+  }
+  // 桌面设备上的单击事件不在此处处理，因为我们会依赖 dblclick
+};
+
+// 处理双击事件 (主要用于桌面端)
+const handleDoubleClick = (index) => {
+  if (!isTouchDevice.value) {
+    console.log('Desktop double click detected for index:', index);
+    emit('play-song-from-list', index);
+  }
+};
 </script>
+
+<style scoped>
+/* ... (你的 CSS 样式保持不变) */
+
+/* 可以在这里添加一些触摸设备的视觉反馈，例如 active 状态 */
+.touch-active li {
+  /* 触摸设备上的列表项样式调整，例如增加点击区域 */
+  cursor: pointer; /* 确保触摸设备上也有点击手势指示 */
+}
+
+/* 确保点击下载按钮不会触发播放 */
+.controls button {
+  /* ... */
+  pointer-events: auto; /* 确保按钮可以被点击 */
+}
+</style>
 
 <style scoped>
 #results-container {
